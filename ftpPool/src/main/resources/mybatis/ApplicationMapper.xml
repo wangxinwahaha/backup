@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unisinsight.framework.uuv.mapper.ApplicationMapper">
+    <resultMap id="ApplicationResultMap" type="com.unisinsight.framework.uuv.model.ApplicationDO">
+        <id column="app_id" jdbcType="INTEGER" property="appId"/>
+        <result column="app_code" jdbcType="VARCHAR" property="appCode"/>
+        <result column="app_name" jdbcType="VARCHAR" property="appName"/>
+        <result column="default_url" jdbcType="VARCHAR" property="defaultUrl"/>
+        <result column="support_user" jdbcType="VARCHAR" property="supportUser"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy"/>
+        <result column="create_at" jdbcType="TIMESTAMP" property="createAt"/>
+        <result column="updated_by" jdbcType="VARCHAR" property="updatedBy"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="deleted" jdbcType="INTEGER" property="deleted"/>
+        <result column="category_id" jdbcType="INTEGER" property="categoryId"/>
+    </resultMap>
+
+    <select id="getUserApplications" resultMap="ApplicationResultMap">
+        SELECT A.*
+        FROM
+        ( SELECT * FROM uuv.user_info WHERE user_id = #{userId} and deleted = 0) AS u
+         JOIN uuv.user_role_mapping M ON u.user_id = M.user_id
+         JOIN uuv.ROLE r ON M.role_id = r.role_id and r.deleted = 0
+         JOIN uuv.application A ON r.app_id = A.app_id and A.deleted = 0
+    </select>
+
+    <select id="getUserAppByCode" resultMap="ApplicationResultMap">
+        SELECT A.*
+        FROM
+        ( SELECT * FROM uuv.user_info WHERE user_code = #{userCode} and deleted = 0) AS u
+         JOIN uuv.user_role_mapping M ON u.user_id = M.user_id
+         JOIN uuv.ROLE r ON M.role_id = r.role_id and r.deleted = 0
+         JOIN uuv.application A ON r.app_id = A.app_id and A.deleted = 0
+    </select>
+
+</mapper>

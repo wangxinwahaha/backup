@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unisinsight.framework.uuv.mapper.UserInfoMapper">
+    <resultMap id="UserInfoListResultMap" type="com.unisinsight.framework.uuv.model.UserInfoListDO">
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_code" jdbcType="VARCHAR" property="userCode"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="gender" jdbcType="VARCHAR" property="gender"/>
+        <result column="birthday" jdbcType="DATE" property="birthday"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="work_phone" jdbcType="CHAR" property="workPhone"/>
+        <result column="cell_phone" jdbcType="CHAR" property="cellPhone"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="title_name" jdbcType="VARCHAR" property="titleName"/>
+        <result column="title_code" jdbcType="VARCHAR" property="titleCode"/>
+        <result column="org_code" jdbcType="VARCHAR" property="orgCode"/>
+        <result column="org_name" jdbcType="VARCHAR" property="orgName"/>
+        <result column="extend_key" jdbcType="VARCHAR" property="extendKey"/>
+        <result column="extend_value" jdbcType="VARCHAR" property="extendValue"/>
+    </resultMap>
+
+    <resultMap id="UserInfoResultMap" type="com.unisinsight.framework.uuv.model.UserDetailInfoDO">
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_code" jdbcType="VARCHAR" property="userCode"/>
+        <result column="user_name" jdbcType="VARCHAR" property="userName"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="gender" jdbcType="VARCHAR" property="gender"/>
+        <result column="birthday" jdbcType="DATE" property="birthday"/>
+        <result column="address" jdbcType="VARCHAR" property="address"/>
+        <result column="work_phone" jdbcType="CHAR" property="workPhone"/>
+        <result column="cell_phone" jdbcType="CHAR" property="cellPhone"/>
+        <result column="created_by" jdbcType="VARCHAR" property="createdBy"/>
+        <result column="created_at" jdbcType="DATE" property="createdAt"/>
+        <result column="update_by" jdbcType="VARCHAR" property="updateBy"/>
+        <result column="update_at" jdbcType="DATE" property="updateAt"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="title_id" jdbcType="INTEGER" property="titleId"/>
+        <result column="title_name" jdbcType="VARCHAR" property="titleName"/>
+        <result column="title_code" jdbcType="VARCHAR" property="titleCode"/>
+        <result column="org_id" jdbcType="INTEGER" property="orgId"/>
+        <result column="org_code" jdbcType="VARCHAR" property="orgCode"/>
+        <result column="org_name" jdbcType="VARCHAR" property="orgName"/>
+        <result column="position_id" jdbcType="INTEGER" property="positionId"/>
+        <result column="position_code" jdbcType="VARCHAR" property="positionCode"/>
+        <result column="position_name" jdbcType="VARCHAR" property="positionName"/>
+        <result column="role_id" jdbcType="INTEGER" property="roleId"/>
+        <result column="role_code" jdbcType="VARCHAR" property="roleCode"/>
+        <result column="role_name" jdbcType="VARCHAR" property="roleName"/>
+        <result column="app_id" jdbcType="VARCHAR" property="appId"/>
+        <result column="app_name" jdbcType="VARCHAR" property="appName"/>
+        <result column="app_code" jdbcType="VARCHAR" property="appCode"/>
+        <result column="extend_key" jdbcType="VARCHAR" property="extendKey"/>
+        <result column="extend_value" jdbcType="VARCHAR" property="extendValue"/>
+    </resultMap>
+
+    <select id="selectUserById" resultMap="UserInfoResultMap">
+      select * from uuv.v_user_info_final where user_id = #{userId} and deleted = 0
+    </select>
+
+    <select id="selectUserByUserCode" resultMap="UserInfoResultMap">
+      select * from uuv.v_user_info_final where user_code = #{userCode} and deleted = 0
+    </select>
+
+    <select id="list" resultMap="UserInfoListResultMap">
+        select *
+        from ( select vuif.birthday,vuif.gender,vuif.user_name,vuif.work_phone,vuif.cell_phone
+        ,vuif.title_code,vuif.user_code,vuif.user_id,vuif.title_name,vuif.org_name
+        ,vuif.org_code,vuif.email,vuif.status,vuif.extend_key,vuif.extend_value,
+        row_number() OVER (ORDER BY ${orderFiled} ${orderRule}) AS rn
+        from uuv.v_user_info_final vuif
+        <where>
+            <if test="params.search != null and params.search != ''">
+                and (role_name like concat('%', #{params.search}, '%')
+                or role_code like concat('%', #{params.search}, '%')
+                or title_name like concat('%', #{params.search}, '%')
+                or title_code like concat('%', #{params.search}, '%')
+                or position_name like concat('%', #{params.search}, '%')
+                or position_code like concat('%', #{params.search}, '%')
+                or user_name like concat('%', #{params.search}, '%')
+                or user_code like concat('%', #{params.search}, '%')
+                or email like concat('%', #{params.search}, '%')
+                or address like concat('%', #{params.search}, '%')
+                or work_phone like concat('%', #{params.search}, '%')
+                or cell_phone like concat('%', #{params.search}, '%')
+                or org_name like concat('%', #{params.search}, '%')
+                or org_code like concat('%', #{params.search}, '%'))
+            </if>
+
+            <if test="positionIds != null">and
+                <foreach collection="positionIds" index="index" item="item" separator="or">
+                    regexp_split_to_array(position_id,',') @> array ['${item}']
+                </foreach>
+            </if>
+            <if test="roleIds != null">and
+                <foreach collection="roleIds" index="index" item="item" separator="or">
+                    regexp_split_to_array(role_id,',') @> array ['${item}']
+                </foreach>
+            </if>
+
+            <if test="appIds != null">and
+                <foreach collection="appIds" index="index" item="item" separator="or">
+                    regexp_split_to_array(app_id,',') @> array ['${item}']
+                </foreach>
+            </if>
+
+            <if test="orgId != null and orgId != ''">
+                and org_id in ${orgId}
+            </if>
+
+            <if test="params.role_code != null and params.role_code != ''">and role_code like concat('%', #{params.role_code}, '%')
+            </if>
+            <if test="params.role_name != null and params.role_name != ''">and role_name like concat('%', #{params.role_name}, '%')
+            </if>
+
+            <if test="params.title_id != null and params.title_id != ''">and title_id = cast(#{params.title_id} as
+                integer )</if>
+            <if test="params.title_code != null and params.title_code != ''">and title_code = #{params.title_code}</if>
+            <if test="params.title_name != null and params.title_name != ''">and title_name = #{params.title_name}</if>
+
+            <if test="params.position_code != null and params.position_code != ''">and position_code like
+                concat('%', #{params.position_code}, '%')
+            </if>
+            <if test="params.position_name != null and params.position_name != ''">and position_name like
+                concat('%', #{params.position_code}, '%')
+            </if>
+
+            <if test="params.user_name != null and params.user_name != ''">and user_name like concat('%', #{params.user_name}, '%')
+            </if>
+            <if test="params.user_code != null and params.user_code != ''">and user_code like concat('%', #{params.user_code}, '%')
+            </if>
+            <if test="params.email != null and params.email != ''">and email like concat('%', #{params.email}, '%')</if>
+            <if test="params.gender != null and params.gender != ''">and gender = CAST(#{params.gender} as integer)</if>
+            <if test="params.address != null and params.address != ''">and address like concat('%', #{params.address}, '%')</if>
+
+            <if test="params.birthday != null and params.birthday != ''">and birthday like concat('%', #{params.birthday}, '%')</if>
+            <if test="params.work_phone != null and params.work_phone != ''">and work_phone like
+                concat('%', #{params.work_phone}, '%')
+            </if>
+            <if test="params.cell_phone != null and params.cell_phone != ''">and cell_phone like
+                concat('%', #{params.cell_phone}, '%')
+            </if>
+        </where>
+        ) o
+        <where>
+            o.rn BETWEEN (#{pageIndex}-1)*#{pageSize}+1 AND #{pageIndex}*#{pageSize};
+        </where>
+    </select>
+
+    <select id="count" resultType="java.lang.Integer">
+        select count(1)
+        from ( select 1,
+        row_number() OVER (ORDER BY ${orderFiled} ${orderRule}) AS rn
+        from uuv.v_user_info_final vuif
+        <where>
+            <if test="params.search != null and params.search != ''">
+                and (role_name like concat('%', #{params.search}, '%')
+                or role_code like concat('%', #{params.search}, '%')
+                or title_name like concat('%', #{params.search}, '%')
+                or title_code like concat('%', #{params.search}, '%')
+                or position_name like concat('%', #{params.search}, '%')
+                or position_code like concat('%', #{params.search}, '%')
+                or user_name like concat('%', #{params.search}, '%')
+                or user_code like concat('%', #{params.search}, '%')
+                or email like concat('%', #{params.search}, '%')
+                or address like concat('%', #{params.search}, '%')
+                or work_phone like concat('%', #{params.search}, '%')
+                or cell_phone like concat('%', #{params.search}, '%')
+                or org_name like concat('%', #{params.search}, '%')
+                or org_code like concat('%', #{params.search}, '%'))
+            </if>
+
+            <if test="positionIds != null">and
+                <foreach collection="positionIds" index="index" item="item" separator="or">
+                    regexp_split_to_array(position_id,',') @> array ['${item}']
+                </foreach>
+
+            </if>
+
+            <if test="roleIds != null">and
+                <foreach collection="roleIds" index="index" item="item" separator="or">
+                    regexp_split_to_array(role_id,',') @> array ['${item}']
+                </foreach>
+            </if>
+
+            <if test="appIds != null">and
+                <foreach collection="appIds" index="index" item="item" separator="or">
+                    regexp_split_to_array(app_id,',') @> array ['${item}']
+                </foreach>
+            </if>
+
+            <if test="orgId != null and orgId != ''">
+                and org_id in ${orgId}
+            </if>
+
+            <if test="params.role_code != null and params.role_code != ''">and role_code like concat('%', #{params.role_code}, '%')
+            </if>
+            <if test="params.role_name != null and params.role_name != ''">and role_name like concat('%', #{params.role_name}, '%')
+            </if>
+
+            <if test="params.title_id != null and params.title_id != ''">and title_id = cast(#{params.title_id} as
+                integer )</if>
+            <if test="params.title_code != null and params.title_code != ''">and title_code = #{params.title_code}</if>
+            <if test="params.title_name != null and params.title_name != ''">and title_name = #{params.title_name}</if>
+
+            <if test="params.position_code != null and params.position_code != ''">and position_code like
+                concat('%', #{params.position_code}, '%')
+            </if>
+            <if test="params.position_name != null and params.position_name != ''">and position_name like
+                concat('%', #{params.role_code}, '%')
+            </if>
+
+            <if test="params.user_name != null and params.user_name != ''">and user_name like concat('%', #{params.user_name}, '%')
+            </if>
+            <if test="params.user_code != null and params.user_code != ''">and user_code like concat('%', #{params.user_code}, '%')
+            </if>
+            <if test="params.email != null and params.email != ''">and email like concat('%', #{params.email}, '%')</if>
+            <if test="params.gender != null and params.gender != ''">and gender = CAST(#{params.gender} as integer)</if>
+            <if test="params.address != null and params.address != ''">and address like concat('%', #{params.address}, '%')</if>
+
+            <if test="params.birthday != null and params.birthday != ''">and birthday like concat('%', #{params.birthday}, '%')</if>
+            <if test="params.work_phone != null and params.work_phone != ''">and work_phone like
+                concat('%', #{params.work_phone}, '%')
+            </if>
+            <if test="params.cell_phone != null and params.cell_phone != ''">and cell_phone like
+                concat('%', #{params.cell_phone}, '%')
+            </if>
+        </where>
+        ) o
+    </select>
+</mapper>

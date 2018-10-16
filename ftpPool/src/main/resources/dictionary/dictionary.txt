@@ -1,0 +1,7 @@
+#user_info_attr
+we_chat|微信|string|text|1
+alias|别名|string|text|1
+
+#organization_attr
+owner|负责人|string|text|1
+

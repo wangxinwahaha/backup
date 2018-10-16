@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unisinsight.framework.uuv.mapper.OrganizationMapper">
+    <resultMap id="orgList" type="com.unisinsight.framework.uuv.model.OrganizationExtraDO">
+        <id column="org_id" jdbcType="INTEGER" property="orgId"/>
+        <result column="org_code" jdbcType="VARCHAR" property="orgCode"/>
+        <result column="org_name" jdbcType="VARCHAR" property="orgName"/>
+        <result column="node_level" jdbcType="INTEGER" property="nodeLevel"/>
+        <result column="parent_id" jdbcType="INTEGER" property="parentId"/>
+        <result column="display_order" jdbcType="FLOAT" property="displayOrder"/>
+    </resultMap>
+    <select id="getAllOrgInfo" resultMap="orgList">
+    SELECT
+	org_id,
+	org_code,
+	org_name,
+	node_level,
+	parent_id,
+	om.display_order
+
+FROM
+	uuv.organization o
+	JOIN uuv.organization_mapping om ON o.org_id = om.sub_id
+WHERE
+	om.TYPE = 0
+	AND
+	o.deleted = 0
+  </select>
+
+  <select id="getAllOrgCode" resultType="java.util.List">
+    SELECT
+	org_code,
+FROM
+	uuv.organization o
+	JOIN uuv.organization_mapping om ON o.org_id = om.sub_id
+WHERE
+	om.TYPE = 0
+	AND
+	o.deleted = 0
+  </select>
+
+    <select id="getOrgById" resultMap="orgList" parameterType="java.lang.Integer">
+    SELECT
+	org_id,
+	org_code,
+	org_name,
+	node_level,
+	parent_id,
+	om.display_order
+FROM
+	uuv.organization o
+	JOIN uuv.organization_mapping om ON o.org_id = om.sub_id
+WHERE
+    om.TYPE = 0
+	AND
+	o.org_id = #{orgId}
+	AND
+	o.deleted = 0
+  </select>
+
+</mapper>

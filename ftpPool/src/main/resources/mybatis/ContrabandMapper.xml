@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.unisinsight.framework.uuv.mapper.ContrabandMapper">
+	<resultMap id="Contraband"
+		type="com.unisinsight.framework.uuv.model.ContrabandDO">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+		<result column="type" jdbcType="INTEGER" property="type" />
+	</resultMap>
+	
+	<resultMap id="ContrabandDetail" type="com.unisinsight.framework.uuv.model.ext.ContrabandExt" extends="Contraband">
+    <result column="contrabandType" jdbcType="VARCHAR" property="contrabandType" />
+    <result column="contrabandTypeName" jdbcType="VARCHAR" property="contrabandTypeName" />
+  </resultMap>
+
+  <select id="getContrabandByType" resultMap="ContrabandDetail">
+      select t.id, t.name, t.description, t1.typeCoding as contrabandType, t1.name as contrabandTypeName 
+      from contraband t 
+      left join contrabandtype t1 on( t.type = t1.id ) 
+      where t1.typeCoding = #{type} and t1.deleted=0;
+  </select>
+</mapper>
