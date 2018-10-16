@@ -139,6 +139,7 @@ public class FtpUtil {
 				return true;
 			String[] arr = dir.split("/");
 			StringBuffer sbfDir = new StringBuffer();
+			ftp.removeDirectory(dir);
 			// 循环生成子目录
 			for (String s : arr) {
 				sbfDir.append("/");

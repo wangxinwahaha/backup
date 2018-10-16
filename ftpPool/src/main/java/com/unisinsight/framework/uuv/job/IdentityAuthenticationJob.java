@@ -58,12 +58,13 @@ public class IdentityAuthenticationJob {
 	@Resource
 	private IdentityAuthenticationService identityAuthenticationService;
 
-	@Scheduled(cron = "0/10 * * * * ?")
+	// @Scheduled(cron = "0/10 * * * * ?")
 	// 每10秒钟执行一次
 	public void downloadFile() throws Exception {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		// 备份目录路径
-		String backupPath = "/" + authenticationbackup + "/" + dateFormat.format(new Date());
+		String backupPath = "/" + authenticationbackup + "/"
+				+ dateFormat.format(new Date());
 		/*
 		 * 获取ftp连接,同时创建需要建的目录 FTPClient ftp = ftpServerUtil.getFtpClient();
 		 */
@@ -77,18 +78,23 @@ public class IdentityAuthenticationJob {
 				return;
 			}
 			for (FTPFile directory : directories) {
-				if (!".".equals(directory.getName()) && !"..".equals(directory.getName())) {
+				if (!".".equals(directory.getName())
+						&& !"..".equals(directory.getName())) {
 					// 进入按照日期存储的文本目录
 					ftp.changeWorkingDirectory(directory.getName());
 					FTPFile[] files = ftp.listFiles();
 					for (FTPFile ftpFile : files) {
-						if (!".".equals(ftpFile.getName()) && !"..".equals(ftpFile.getName())) {
+						if (!".".equals(ftpFile.getName())
+								&& !"..".equals(ftpFile.getName())) {
 							FtpUtil.createDirectory(backupPath);
 							// 如果文件正在被编辑，移动失败，则继续下一次
-							Boolean success = ftp.rename(ftpFile.getName(), "/" + backupPath + "/" + ftpFile.getName());
+							Boolean success = ftp.rename(ftpFile.getName(), "/"
+									+ backupPath + "/" + ftpFile.getName());
 							if (success) {
 								// 进入到ftp备份目录读取文本信息，进入下一步操作
-								identityAuthenticationService.asyncIdentityAuthentication(backupPath, ftpFile.getName());
+								identityAuthenticationService
+										.asyncIdentityAuthentication(
+												backupPath, ftpFile.getName());
 							}
 						}
 					}
@@ -101,6 +107,46 @@ public class IdentityAuthenticationJob {
 			// 关闭ftp连接
 			// ftp.logout();
 			// ftp.disconnect();
+			FtpUtil.releaseFtpClient(ftp);
+		}
+	}
+
+	/**
+	 * 删除身份认证信息ftp中产生的空文件夹
+	 * 
+	 * @throws Exception
+	 */
+	@Scheduled(cron = "0/30 * * * * ?")
+	// 每10秒钟执行一次
+	public void removeEmptyDirectory() throws Exception {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+		// 当天的文件夹，不删除
+		String folderName = dateFormat.format(new Date());
+		// 认证信息路径
+		String path = "/" + authenticationPath;
+		// 使用ftp池获取连接
+		FTPClient ftp = FtpUtil.getFtpClient();
+		// 进入到身份认证文本信息目录
+		ftp.changeWorkingDirectory(path);
+		try {
+			FTPFile[] directories = ftp.listDirectories();
+			if (directories == null) {
+				return;
+			}
+			for (FTPFile directory : directories) {
+				if (!".".equals(directory.getName())
+						&& !"..".equals(directory.getName())
+						&& !folderName.equals(directory.getName())) {
+					// 进入按照日期存储的文本目录
+					ftp.removeDirectory(directory.getName());
+
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 关闭ftp连接
 			FtpUtil.releaseFtpClient(ftp);
 		}
 	}

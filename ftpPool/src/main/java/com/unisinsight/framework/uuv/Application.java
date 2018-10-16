@@ -17,8 +17,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @date 2018/9/7 10:06
  * @since 1.0
  */
-@EnableEurekaClient
-@EnableDiscoveryClient
 @EnableAsync
 @SpringBootApplication
 public class Application {
